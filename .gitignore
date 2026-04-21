@@ -1,0 +1,86 @@
+# =========================
+# Python cache
+# =========================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# =========================
+# Virtual environment
+# =========================
+venv/
+.venv/
+env/
+ENV/
+pip-wheel-metadata/
+
+# =========================
+# Jupyter Notebook
+# =========================
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# =========================
+# OS / Editor files
+# =========================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# =========================
+# Logs
+# =========================
+*.log
+
+# =========================
+# Dataset (Raw data should NOT be pushed)
+# =========================
+data/raw/
+
+# (Optional) ignore processed if too big
+# data/processed/
+
+# =========================
+# Model files (often large)
+# =========================
+models/*.pkl
+models/*.joblib
+*.pkl
+*.joblib
+
+# =========================
+# Temporary / output files
+# =========================
+*.tmp
+*.bak
+
+# =========================
+# Environment variables
+# =========================
+.env
+.env.local
+
+# =========================
+# Python build / distribution
+# =========================
+build/
+dist/
+*.egg-info/
+
+# =========================
+# Test cache
+# =========================
+.pytest_cache/
+
+# =========================
+# MacOS metadata
+# =========================
+*.DS_Store
+
+# =========================
+# Large CSV files (optional)
+# Nếu file processed lớn thì bật dòng dưới
+# =========================
+# data/processed/*.csv
