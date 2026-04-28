@@ -39,38 +39,52 @@ def load_and_merge_data():
                 temp_df = pd.read_csv(filepath, nrows=1)
                 actual_cols = {col: col.strip() for col in temp_df.columns}
 
+                # ✅ FIX 1: check Label
+                if 'Label' not in actual_cols.values():
+                    print(f"⏩ Bỏ qua {file}: không có cột Label")
+                    continue
+
                 usecols = [
                     col for col, stripped in actual_cols.items()
                     if stripped in columns_to_load
                 ]
 
                 df = pd.read_csv(filepath, usecols=usecols, low_memory=False)
-
                 df.rename(columns=actual_cols, inplace=True)
 
             # =========================
             # PARQUET
             # =========================
             elif file.endswith(".parquet"):
-                df = pd.read_parquet(filepath, engine="pyarrow")
+                try:
+                    df = pd.read_parquet(filepath, engine="pyarrow")
+                except ImportError:
+                    # ✅ FIX 2: không nuốt lỗi
+                    raise ImportError("Thiếu thư viện pyarrow. Chạy: pip install pyarrow")
 
-                # strip whitespace cột
                 df.columns = df.columns.str.strip()
 
-                # lọc cột cần thiết
+                # ✅ FIX 1: check Label
+                if 'Label' not in df.columns:
+                    print(f"⏩ Bỏ qua {file}: không có cột Label")
+                    continue
+
                 df = df[[c for c in df.columns if c in columns_to_load]]
 
             else:
                 continue
 
             df_list.append(df)
-            print(f"Loaded {file}: {df.shape}")
+            print(f"✅ Loaded {file}: {df.shape}")
 
+        except ImportError as ie:
+            # ✅ FIX 2: dừng luôn nếu thiếu dependency
+            raise ie
         except Exception as e:
             print(f"❌ Lỗi file {file}: {e}")
 
     if not df_list:
-        raise ValueError("❌ Không load được file nào. Kiểm tra CSV/PARQUET hoặc SELECTED_FEATURES.")
+        raise ValueError("❌ Không load được file nào hợp lệ.")
 
     df_merged = pd.concat(df_list, ignore_index=True)
     print(f"Merged shape: {df_merged.shape}")
@@ -81,6 +95,7 @@ def load_and_merge_data():
 def clean_data(df):
     print("\n--- Bắt đầu làm sạch dữ liệu ---")
 
+    # xử lý NaN / inf
     for col in df.select_dtypes(include=[np.number]).columns:
         df[col] = df[col].replace([np.inf, -np.inf], np.nan)
 
@@ -89,6 +104,7 @@ def clean_data(df):
             df[col] = df[col].fillna(median_val)
             print(f"  Fill NaN {col} = {median_val}")
 
+    # drop zero variance
     features_only = [c for c in df.columns if c != 'Label']
     zero_var_cols = [c for c in features_only if df[c].nunique() <= 1]
 
@@ -96,11 +112,18 @@ def clean_data(df):
         df = df.drop(columns=zero_var_cols)
         print(f"  Drop zero-var: {zero_var_cols}")
 
+    # drop duplicates
     before = len(df)
     df = df.drop_duplicates()
     print(f"  Drop duplicates: {before - len(df)} rows")
+
+    # ✅ FIX 3: downcast an toàn
     for col in df.select_dtypes(include=['int64']).columns:
-        df[col] = pd.to_numeric(df[col], downcast='unsigned')
+        if (df[col] < 0).any():
+            df[col] = pd.to_numeric(df[col], downcast='integer')
+        else:
+            df[col] = pd.to_numeric(df[col], downcast='unsigned')
+
     for col in df.select_dtypes(include=['float64']).columns:
         df[col] = pd.to_numeric(df[col], downcast='float')
 
@@ -108,6 +131,13 @@ def clean_data(df):
 
 
 def encode_labels(df):
+    # ✅ optional: check thêm để chắc chắn
+    if 'Label' not in df.columns:
+        raise ValueError("❌ Không tìm thấy cột Label để encode.")
+
+    if df['Label'].isna().any():
+        raise ValueError("❌ Label chứa NaN → dữ liệu không hợp lệ.")
+
     le = LabelEncoder()
     df['Label'] = le.fit_transform(df['Label'])
     return df, le
