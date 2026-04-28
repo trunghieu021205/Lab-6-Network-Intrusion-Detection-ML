@@ -25,6 +25,25 @@ def load_and_merge_data():
 
     df_list = []
     columns_to_load = SELECTED_FEATURES + ['Label']
+    
+    RENAME_DICT = {
+        'Total Fwd Packets': 'Tot Fwd Pkts',
+        'Total Backward Packets': 'Tot Bwd Pkts',
+        'Total Length of Fwd Packets': 'TotLen Fwd Pkts',
+        'Total Length of Bwd Packets': 'TotLen Bwd Pkts',
+        'Fwd Packet Length Mean': 'Fwd Pkt Len Mean',
+        'Bwd Packet Length Mean': 'Bwd Pkt Len Mean',
+        'Flow Bytes/s': 'Flow Byt/s',
+        'Flow Packets/s': 'Flow Pkts/s',
+        'Packet Length Mean': 'Pkt Len Mean',
+        'Packet Length Std': 'Pkt Len Std',
+        'SYN Flag Count': 'SYN Flag Cnt',
+        'ACK Flag Count': 'ACK Flag Cnt',
+        'FIN Flag Count': 'FIN Flag Cnt',
+        'RST Flag Count': 'RST Flag Cnt',
+        'PSH Flag Count': 'PSH Flag Cnt',
+        'URG Flag Count': 'URG Flag Cnt'
+    }
 
     for file in all_files:
         filepath = os.path.join(DATA_RAW_DIR, file)
@@ -37,16 +56,22 @@ def load_and_merge_data():
             # =========================
             if file.endswith(".csv"):
                 temp_df = pd.read_csv(filepath, nrows=1)
-                actual_cols = {col: col.strip() for col in temp_df.columns}
+                
+                # Map từ tên gốc -> tên viết tắt (nếu có trong RENAME_DICT)
+                actual_cols = {}
+                for col in temp_df.columns:
+                    stripped = col.strip()
+                    mapped_name = RENAME_DICT.get(stripped, stripped)
+                    actual_cols[col] = mapped_name
 
-                # ✅ FIX 1: check Label
+                #  FIX 1: check Label
                 if 'Label' not in actual_cols.values():
-                    print(f"⏩ Bỏ qua {file}: không có cột Label")
+                    print(f"Bỏ qua {file}: không có cột Label")
                     continue
 
                 usecols = [
-                    col for col, stripped in actual_cols.items()
-                    if stripped in columns_to_load
+                    col for col, mapped in actual_cols.items()
+                    if mapped in columns_to_load
                 ]
 
                 df = pd.read_csv(filepath, usecols=usecols, low_memory=False)
@@ -59,14 +84,15 @@ def load_and_merge_data():
                 try:
                     df = pd.read_parquet(filepath, engine="pyarrow")
                 except ImportError:
-                    # ✅ FIX 2: không nuốt lỗi
+                    #  FIX 2: không nuốt lỗi
                     raise ImportError("Thiếu thư viện pyarrow. Chạy: pip install pyarrow")
 
                 df.columns = df.columns.str.strip()
+                df.rename(columns=RENAME_DICT, inplace=True)
 
-                # ✅ FIX 1: check Label
+                #  FIX 1: check Label
                 if 'Label' not in df.columns:
-                    print(f"⏩ Bỏ qua {file}: không có cột Label")
+                    print(f" Bỏ qua {file}: không có cột Label")
                     continue
 
                 df = df[[c for c in df.columns if c in columns_to_load]]
@@ -75,16 +101,16 @@ def load_and_merge_data():
                 continue
 
             df_list.append(df)
-            print(f"✅ Loaded {file}: {df.shape}")
+            print(f" Loaded {file}: {df.shape}")
 
         except ImportError as ie:
-            # ✅ FIX 2: dừng luôn nếu thiếu dependency
+            #  FIX 2: dừng luôn nếu thiếu dependency
             raise ie
         except Exception as e:
-            print(f"❌ Lỗi file {file}: {e}")
+            print(f"Lỗi file {file}: {e}")
 
     if not df_list:
-        raise ValueError("❌ Không load được file nào hợp lệ.")
+        raise ValueError(" Không load được file nào hợp lệ.")
 
     df_merged = pd.concat(df_list, ignore_index=True)
     print(f"Merged shape: {df_merged.shape}")
@@ -95,8 +121,22 @@ def load_and_merge_data():
 def clean_data(df):
     print("\n--- Bắt đầu làm sạch dữ liệu ---")
 
+    # Loại bỏ các hàng bị lỗi lặp lại header (ví dụ Label == 'Label')
+    if 'Label' in df.columns:
+        before_drop = len(df)
+        df = df[df['Label'] != 'Label']
+        if before_drop - len(df) > 0:
+            print(f"  Drop header rows: {before_drop - len(df)} rows")
+        # Chuẩn hóa nhãn (xóa khoảng trắng thừa)
+        df['Label'] = df['Label'].astype(str).str.strip()
+
+    # Ép kiểu dữ liệu sang số cho tất cả các cột đặc trưng (sẽ chuyển 'Infinity' thành NaN)
+    features_only = [c for c in df.columns if c != 'Label']
+    for col in features_only:
+        df[col] = pd.to_numeric(df[col], errors='coerce')
+
     # xử lý NaN / inf
-    for col in df.select_dtypes(include=[np.number]).columns:
+    for col in features_only:
         df[col] = df[col].replace([np.inf, -np.inf], np.nan)
 
         if df[col].isna().any():
@@ -117,7 +157,7 @@ def clean_data(df):
     df = df.drop_duplicates()
     print(f"  Drop duplicates: {before - len(df)} rows")
 
-    # ✅ FIX 3: downcast an toàn
+    #  FIX 3: downcast an toàn
     for col in df.select_dtypes(include=['int64']).columns:
         if (df[col] < 0).any():
             df[col] = pd.to_numeric(df[col], downcast='integer')
@@ -131,12 +171,12 @@ def clean_data(df):
 
 
 def encode_labels(df):
-    # ✅ optional: check thêm để chắc chắn
+    #  optional: check thêm để chắc chắn
     if 'Label' not in df.columns:
-        raise ValueError("❌ Không tìm thấy cột Label để encode.")
+        raise ValueError(" Không tìm thấy cột Label để encode.")
 
     if df['Label'].isna().any():
-        raise ValueError("❌ Label chứa NaN → dữ liệu không hợp lệ.")
+        raise ValueError(" Label chứa NaN → dữ liệu không hợp lệ.")
 
     le = LabelEncoder()
     df['Label'] = le.fit_transform(df['Label'])
@@ -159,7 +199,7 @@ def main():
 
     df_clean.to_csv(output_path, index=False)
 
-    print(f"\n✅ Saved: {output_path}")
+    print(f"\n Saved: {output_path}")
     print(f"Shape: {df_clean.shape}")
     print(f"Classes: {label_encoder.classes_}")
 
