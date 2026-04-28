@@ -37,7 +37,7 @@ Thumbs.db
 # =========================
 # Dataset (Raw data should NOT be pushed)
 # =========================
-data/raw/
+# data/raw/
 
 # (Optional) ignore processed if too big
 # data/processed/
