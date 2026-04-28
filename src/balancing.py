@@ -39,19 +39,32 @@ def apply_balancing(df):
     # Lưu scaler
     os.makedirs(MODELS_DIR, exist_ok=True)
     joblib.dump(scaler, os.path.join(MODELS_DIR, 'scaler.pkl'))
-    print("  ✅ Đã lưu scaler.pkl")
+    print("Đã lưu scaler.pkl")
     
     # 2. Balancing
-    # Cấu hình SMOTE & UnderSampler: dùng 'auto' để an toàn cho cả dummy data lẫn real data
-    # (Nếu dùng 0.1 cho SMOTE trên tập dummy có thiểu số 15%, nó sẽ báo lỗi)
-    smote = SMOTE(sampling_strategy='auto', random_state=RANDOM_STATE)
-    undersampler = RandomUnderSampler(sampling_strategy='auto', random_state=RANDOM_STATE)
+    class_counts = y.value_counts()
+    max_count = class_counts.max()
+    min_count = class_counts.min()
     
-    print("  Đang chạy SMOTE...")
-    X_resampled, y_resampled = smote.fit_resample(X_scaled, y)
+    # Tính toán k_neighbors tự động (tránh lỗi với class quá nhỏ)
+    k_neighbors = min(5, min_count - 1) if min_count > 1 else 1
+
+    # NGƯỠNG ĐỘNG (Học từ tài liệu tham khảo)
+    # Thay vì dùng SMOTE ép mọi class lên 2.2 triệu mẫu (gây Overfit và cháy RAM),
+    # ta sẽ tập trung vào Undersampling (giảm mẫu đa số) xuống mức an toàn.
+    UPPER_LIMIT = min(max_count, 100000)
+    LOWER_LIMIT = min(max_count, 20000)
     
-    print("  Đang chạy RandomUnderSampler...")
-    X_final, y_final = undersampler.fit_resample(X_resampled, y_resampled)
+    under_strategy = {c: min(count, UPPER_LIMIT) for c, count in class_counts.items()}
+    over_strategy = {c: max(under_strategy[c], LOWER_LIMIT) for c in class_counts.index}
+    
+    print("  Đang chạy RandomUnderSampler (Giảm bớt đa số)...")
+    undersampler = RandomUnderSampler(sampling_strategy=under_strategy, random_state=RANDOM_STATE)
+    X_under, y_under = undersampler.fit_resample(X_scaled, y)
+    
+    print("  Đang chạy SMOTE (Tăng cường thiểu số)...")
+    smote = SMOTE(sampling_strategy=over_strategy, random_state=RANDOM_STATE, k_neighbors=k_neighbors)
+    X_final, y_final = smote.fit_resample(X_under, y_under)
     
     print("\nPhân bố class sau khi cân bằng:")
     print(pd.Series(y_final).value_counts())
@@ -73,7 +86,7 @@ def main():
     output_path = os.path.join(DATA_PROCESSED_DIR, 'final_data.csv')
     df_balanced.to_csv(output_path, index=False)
     
-    print(f"\n✅ Đã lưu dữ liệu cân bằng tại: {output_path}")
+    print(f"\n Đã lưu dữ liệu cân bằng tại: {output_path}")
     print(f"Kích thước cuối cùng: {df_balanced.shape}")
 
 if __name__ == "__main__":

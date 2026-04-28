@@ -1,4 +1,3 @@
-# src/config.py
 import os
 
 # Đường dẫn
@@ -10,9 +9,9 @@ MODELS_DIR = os.path.join(BASE_DIR, 'models')
 RESULTS_DIR = os.path.join(BASE_DIR, 'results')
 REPORTS_DIR = os.path.join(BASE_DIR, 'reports')
 
-# 18 features được chọn (theo lab gốc)
+# 18 features được chọn 
 SELECTED_FEATURES = [
-    'Protocol', 'Flow Duration', 'Tot Fwd Pkts', 'Tot Bwd Pkts',
+    'Destination Port', 'Flow Duration', 'Tot Fwd Pkts', 'Tot Bwd Pkts',
     'TotLen Fwd Pkts', 'TotLen Bwd Pkts', 'Fwd Pkt Len Mean',
     'Bwd Pkt Len Mean', 'Flow Byt/s', 'Flow Pkts/s', 'Pkt Len Mean',
     'Pkt Len Std', 'SYN Flag Cnt', 'ACK Flag Cnt', 'FIN Flag Cnt',
