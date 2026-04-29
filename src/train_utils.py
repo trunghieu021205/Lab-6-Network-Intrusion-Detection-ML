@@ -34,7 +34,7 @@ def train_and_evaluate(model, X_train, X_test, y_train, y_test, model_name):
     """Train model và trả về kết quả đánh giá"""
     # Train
     model.fit(X_train, y_train)
-    print(f"✅ {model_name} trained successfully!")
+    print(f"[OK] {model_name} trained successfully!")
     
     # Predict
     y_pred = model.predict(X_test)
@@ -77,11 +77,11 @@ def plot_confusion_matrix(y_test, y_pred, model_name):
     os.makedirs(REPORTS_DIR, exist_ok=True)
     plt.savefig(os.path.join(REPORTS_DIR, f"{model_name}_confusion_matrix.png"))
     plt.close()
-    print(f"✅ Confusion matrix saved for {model_name}")
+    print(f"[OK] Confusion matrix saved for {model_name}")
 
 def save_model(model, model_name):
     """Lưu model thành file .pkl"""
     os.makedirs(MODELS_DIR, exist_ok=True)
     filepath = os.path.join(MODELS_DIR, f"{model_name}.pkl")
     joblib.dump(model, filepath)
-    print(f"✅ Model saved to {filepath}")
+    print(f"[OK] Model saved to {filepath}")
