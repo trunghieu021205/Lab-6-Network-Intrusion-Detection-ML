@@ -1,5 +1,5 @@
 """
-TV2: K-Nearest Neighbors (KNN) Model
+TV4: K-Nearest Neighbors (KNN) Model
 Phát hiện xâm nhập mạng bằng thuật toán KNN
 """
 
@@ -30,7 +30,7 @@ def run_knn(filepath):
         model: KNN model đã được train.
     """
     print("=" * 50)
-    print("TV2: K-NEAREST NEIGHBORS (KNN) MODEL")
+    print("TV4: K-NEAREST NEIGHBORS (KNN) MODEL")
     print("=" * 50)
 
     # 1. Load dữ liệu và chia train/test
@@ -68,19 +68,31 @@ def run_knn(filepath):
 
 
 # ============================================================
-# CHẠY TRỰC TIẾP VỚI DUMMY DATA (để test cú pháp)
+# CHẠY TRỰC TIẾP - ƯU TIÊN final_data.csv, fallback dummy_data.csv
 # ============================================================
 if __name__ == "__main__":
-    dummy_path = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
-        "data", "dummy", "dummy_data.csv"
-    )
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
-    if not os.path.exists(dummy_path):
-        print(f"[INFO] Dummy data không tìm thấy tại: {dummy_path}")
-        print("[INFO] Đang tạo dummy data bằng create_dummy_data.py...")
+    # Ưu tiên 1: final_data.csv từ TV2 (dữ liệu thật đã cân bằng)
+    final_path = os.path.join(BASE_DIR, "data", "processed", "final_data.csv")
+
+    # Ưu tiên 2: dummy_data.csv (để test)
+    dummy_path = os.path.join(BASE_DIR, "data", "dummy", "dummy_data.csv")
+
+    if os.path.exists(final_path):
+        print(f"[INFO] Tìm thấy dữ liệu thật: {final_path}")
+        print("[INFO] Sử dụng final_data.csv (dữ liệu thật từ TV2)")
+        data_path = final_path
+    elif os.path.exists(dummy_path):
+        print("[WARNING] Không tìm thấy final_data.csv!")
+        print(f"[WARNING] Đặt file vào: {final_path}")
+        print(f"[INFO] Fallback: dùng dummy_data.csv để test")
+        data_path = dummy_path
+    else:
+        print("[INFO] Không có dữ liệu, đang tạo dummy data...")
         from src.create_dummy_data import create_dummy_data
         create_dummy_data()
+        data_path = dummy_path
 
-    print(f"\n[INFO] Sử dụng file: {dummy_path}")
-    run_knn(dummy_path)
+    print(f"\n[INFO] Chạy KNN với file: {data_path}")
+    run_knn(data_path)
