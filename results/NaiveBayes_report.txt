@@ -1,0 +1,14 @@
+=== Naive Bayes ===
+Accuracy: 0.9200
+Precision (weighted): 0.9200
+Recall (weighted): 0.9200
+F1-Score (weighted): 0.9200
+
+              precision    recall  f1-score   support
+
+           0       0.92      0.92      0.92       849
+           1       0.92      0.92      0.92       848
+
+    accuracy                           0.92      1697
+   macro avg       0.92      0.92      0.92      1697
+weighted avg       0.92      0.92      0.92      1697

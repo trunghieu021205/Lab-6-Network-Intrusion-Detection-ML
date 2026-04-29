@@ -1,0 +1,14 @@
+=== SVM ===
+Accuracy: 0.9600
+Precision (weighted): 0.9600
+Recall (weighted): 0.9600
+F1-Score (weighted): 0.9600
+
+              precision    recall  f1-score   support
+
+           0       0.96      0.96      0.96       849
+           1       0.96      0.96      0.96       848
+
+    accuracy                           0.96      1697
+   macro avg       0.96      0.96      0.96      1697
+weighted avg       0.96      0.96      0.96      1697
