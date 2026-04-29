@@ -7,6 +7,11 @@ import seaborn as sns
 import joblib
 import os
 import sys
+
+# Force utf-8 encoding for Windows
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
+
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from src.config import *
 
@@ -49,7 +54,7 @@ def train_and_evaluate(model, X_train, X_test, y_train, y_test, model_name):
     report = classification_report(y_test, y_pred)
     
     # Save results
-    results_path = os.path.join(RESULTS_DIR, f"{model_name}.txt")
+    results_path = os.path.join(RESULTS_DIR, f"{model_name}_report.txt")
     os.makedirs(RESULTS_DIR, exist_ok=True)
     with open(results_path, 'w') as f:
         f.write(f"=== {model_name} ===\n")
