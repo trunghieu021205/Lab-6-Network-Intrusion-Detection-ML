@@ -49,7 +49,7 @@ def train_and_evaluate(model, X_train, X_test, y_train, y_test, model_name):
     report = classification_report(y_test, y_pred)
     
     # Save results
-    results_path = os.path.join(RESULTS_DIR, f"{model_name}_report.txt")
+    results_path = os.path.join(RESULTS_DIR, f"{model_name}.txt")
     os.makedirs(RESULTS_DIR, exist_ok=True)
     with open(results_path, 'w') as f:
         f.write(f"=== {model_name} ===\n")
