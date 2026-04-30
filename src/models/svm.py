@@ -68,17 +68,17 @@ def run_svm(filepath):
     # 4. Train và đánh giá
     print("\n[4/4] Evaluating...")
     pipeline, y_pred, report = train_and_evaluate(
-        pipeline, X_train_sample, X_test, y_train_sample, y_test, model_name="TV4_SVM"
+        pipeline, X_train_sample, X_test, y_train_sample, y_test, model_name="SVM"
     )
 
     # 5. Lưu model
-    save_model(pipeline, "TV4_SVM")
+    save_model(pipeline, "svm")
 
     print("\n" + "=" * 50)
     print("Classification Report:\n")
     print(report)
     print("=" * 50)
-    print("SVM hoàn thành! Kết quả đã lưu: results/TV4_SVM.txt | reports/TV4_SVM_confusion_matrix.png")
+    print("SVM hoan thanh! Ket qua da luu: results/SVM_report.txt | reports/SVM_confusion_matrix.png")
 
     return pipeline
 

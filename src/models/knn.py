@@ -52,17 +52,17 @@ def run_knn(filepath):
     # 3. Train và đánh giá
     print("\n[3/3] Evaluating...")
     model, y_pred, report = train_and_evaluate(
-        model, X_train, X_test, y_train, y_test, model_name="TV4_knn"
+        model, X_train, X_test, y_train, y_test, model_name="KNN"
     )
 
     # 4. Lưu model
-    save_model(model, "TV4_knn")
+    save_model(model, "knn")
 
     print("\n" + "=" * 50)
     print("Classification Report:\n")
     print(report)
     print("=" * 50)
-    print("KNN hoàn thành! Kết quả đã lưu: results/TV4_knn.txt | reports/TV4_knn_confusion_matrix.png")
+    print("KNN hoan thanh! Ket qua da luu: results/KNN_report.txt | reports/KNN_confusion_matrix.png")
 
     return model
 
