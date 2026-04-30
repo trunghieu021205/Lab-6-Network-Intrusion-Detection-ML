@@ -1,14 +1,27 @@
-=== Logistic Regression ===
-Accuracy: 0.9500
-Precision (weighted): 0.9500
-Recall (weighted): 0.9500
-F1-Score (weighted): 0.9500
+=== LogisticRegression ===
+Accuracy: 0.8792
+Precision (weighted): 0.8821
+Recall (weighted): 0.8792
+F1-Score (weighted): 0.8685
 
               precision    recall  f1-score   support
 
-           0       0.95      0.95      0.95       849
-           1       0.95      0.95      0.95       848
+           0       0.87      0.83      0.85     20000
+           1       0.92      0.37      0.53      4000
+           2       0.91      1.00      0.95     20000
+           3       0.91      0.78      0.84      4000
+           4       0.99      0.96      0.98     20000
+           5       0.85      0.88      0.86      4000
+           6       0.84      0.62      0.71      4000
+           7       0.95      0.99      0.97      4000
+           8       1.00      1.00      1.00      4000
+           9       0.99      0.83      0.90      4000
+          10       0.92      0.99      0.96     18149
+          11       0.95      0.94      0.95      4000
+          12       0.32      0.05      0.08      4000
+          13       0.71      0.97      0.82      4000
+          14       0.44      0.94      0.60      4000
 
-    accuracy                           0.95      1697
-   macro avg       0.95      0.95      0.95      1697
-weighted avg       0.95      0.95      0.95      1697
+    accuracy                           0.88    122149
+   macro avg       0.84      0.81      0.80    122149
+weighted avg       0.88      0.88      0.87    122149
