@@ -1,6 +1,6 @@
 === TV4_knn ===
 Accuracy: 0.9745
-Precision (weighted): 0.9747
+Precision (weighted): 0.9746
 Recall (weighted): 0.9745
 F1-Score (weighted): 0.9745
 
