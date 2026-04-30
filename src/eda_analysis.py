@@ -16,18 +16,25 @@ def load_real_data():
     if not os.path.exists(filepath):
         print("Khong tim thay cleaned_data.csv. Hay dat file vao data/processed/")
         return None
-    df = pd.read_csv(filepath)
-    print("Da load du lieu that. Shape:", df.shape)
-    return df
-
 def plot_attack_distribution(df):
+    if 'Label' not in df.columns:
+        raise ValueError("Thieu cot 'Label' trong du lieu dau vao.")
+    
+    attack_counts = df['Label'].value_counts(dropna=False)
+    if attack_counts.empty:
+        print("Khong co du lieu ve phan bo Label.")
+        return
+    
     fig, axes = plt.subplots(1, 2, figsize=(14, 6))
-    attack_counts = df['Label'].value_counts()
+    
+    # bieu do cot
     axes[0].bar(attack_counts.index, attack_counts.values, color='#5B9BD5', edgecolor='black')
     axes[0].set_title('Phan bo cac loai traffic (so luong)')
     axes[0].set_xlabel('Loai')
     axes[0].set_ylabel('So luong')
     axes[0].tick_params(axis='x', rotation=45)
+    
+    # bieu do tron
     axes[1].pie(attack_counts.values, labels=attack_counts.index, autopct='%1.1f%%', startangle=90)
     axes[1].set_title('Phan bo cac loai traffic (ty le %)')
     plt.tight_layout()
