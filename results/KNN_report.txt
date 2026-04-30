@@ -1,0 +1,14 @@
+=== KNN ===
+Accuracy: 0.9700
+Precision (weighted): 0.9700
+Recall (weighted): 0.9700
+F1-Score (weighted): 0.9700
+
+              precision    recall  f1-score   support
+
+           0       0.97      0.97      0.97       849
+           1       0.97      0.97      0.97       848
+
+    accuracy                           0.97      1697
+   macro avg       0.97      0.97      0.97      1697
+weighted avg       0.97      0.97      0.97      1697

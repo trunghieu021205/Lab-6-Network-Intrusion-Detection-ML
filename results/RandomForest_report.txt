@@ -1,0 +1,14 @@
+=== RandomForest ===
+Accuracy: 0.9811
+Precision (weighted): 0.9812
+Recall (weighted): 0.9811
+F1-Score (weighted): 0.9811
+
+              precision    recall  f1-score   support
+
+           0       0.98      0.99      0.98       849
+           1       0.99      0.98      0.98       848
+
+    accuracy                           0.98      1697
+   macro avg       0.98      0.98      0.98      1697
+weighted avg       0.98      0.98      0.98      1697
