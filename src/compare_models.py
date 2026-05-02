@@ -91,7 +91,8 @@ def create_comparison_table():
         print("[WARN] Không có kết quả nào! Hãy train models trước.")
         return None
 
-    df = df.sort_values('F1-Score', ascending=False).reset_index(drop=True)
+    # Sắp xếp theo F1-Score, nếu bằng nhau thì dùng Accuracy làm tie-breaker
+    df = df.sort_values(['F1-Score', 'Accuracy'], ascending=False).reset_index(drop=True)
     best_model = df.iloc[0]['Model']
 
     md = "# Model Comparison Results\n\n"
