@@ -40,15 +40,15 @@ def run_random_forest(filepath):
     X_train, X_test, y_train, y_test = load_data(filepath)
 
     # 2. Khởi tạo model Random Forest với tham số tối ưu
-    # n_estimators=100: số cây quyết định
+    # n_estimators=200: số cây quyết định
     # max_depth=20: giới hạn độ sâu để tránh overfitting
     # min_samples_split=5, min_samples_leaf=2: điều kiện dừng
     # n_jobs=-1: sử dụng tất cả CPU cores
     print("\n[2/3] Training Random Forest model...")
-    print("      n_estimators: 100 | max_depth: 20 | n_jobs: -1")
+    print("      n_estimators: 200 | max_depth: 20 | n_jobs: -1")
     model = RandomForestClassifier(
-        n_estimators=100,
-        max_depth=20,
+        n_estimators=200,
+        #max_depth=20,
         min_samples_split=5,
         min_samples_leaf=2,
         random_state=RANDOM_STATE,

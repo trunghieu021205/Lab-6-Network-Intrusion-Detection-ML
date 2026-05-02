@@ -13,7 +13,19 @@ import sys
 import argparse
 from datetime import datetime
 
-# Force utf-8 encoding for Windows
+# ANSI Color codes
+class Color:
+    RED = '\033[91m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    BLUE = '\033[94m'
+    CYAN = '\033[96m'
+    BOLD = '\033[1m'
+    END = '\033[0m'
+
+# Force utf-8 encoding for Windows and enable ANSI colors
+if sys.platform == 'win32':
+    os.system('') # Kích hoạt hỗ trợ ANSI trên Windows 10+
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
 
@@ -124,12 +136,12 @@ def generate_suricata_alert(prediction, flow_info, confidence=0.95):
     # Build alert
     alert = []
     alert.append("")
-    alert.append("=" * 70)
-    alert.append(f"[ALERT] {timestamp}")
-    alert.append("=" * 70)
-    alert.append(f"[**] Intrusion Detected: {label} [**]")
-    alert.append(f"[Classification: Network Intrusion Detection]")
-    alert.append(f"[Priority: {severity}]")
+    alert.append(Color.RED + "=" * 70 + Color.END)
+    alert.append(f"{Color.RED}{Color.BOLD}[ALERT] {timestamp}{Color.END}")
+    alert.append(Color.RED + "=" * 70 + Color.END)
+    alert.append(f"{Color.RED}{Color.BOLD}[**] Intrusion Detected: {label} [**]{Color.END}")
+    alert.append(f"{Color.CYAN}[Classification: Network Intrusion Detection]{Color.END}")
+    alert.append(f"{Color.YELLOW}[Priority: {severity}]{Color.END}")
     alert.append("")
     
     if flow_info:
@@ -138,10 +150,10 @@ def generate_suricata_alert(prediction, flow_info, confidence=0.95):
             alert.append(f"  {key}: {val}")
         alert.append("")
     
-    alert.append(f"  Prediction: {label}")
-    alert.append(f"  Confidence: {confidence:.2%}")
-    alert.append(f"  Action: ALERT - Logging to console")
-    alert.append("=" * 70)
+    alert.append(f"  Prediction: {Color.BOLD}{label}{Color.END}")
+    alert.append(f"  Confidence: {Color.YELLOW}{confidence:.2%}{Color.END}")
+    alert.append(f"  Action: {Color.RED}ALERT - Logging to console{Color.END}")
+    alert.append(Color.RED + "=" * 70 + Color.END)
     alert.append("")
     
     return "\n".join(alert)
@@ -176,11 +188,11 @@ def simulate_realtime_traffic(csv_path=None, delay=0.5, max_flows=None):
     print(f"  Delay between flows: {delay}s")
     print(f"  Features: {len(SELECTED_FEATURES)}")
     print("-" * 70)
-    print("  Legend:")
-    print("    [ALERT] = Attack detected")
-    print("    [OK]    = Normal traffic (BENIGN)")
+    print(f"  Legend:")
+    print(f"    {Color.RED}[ALERT] = Attack detected{Color.END}")
+    print(f"    {Color.GREEN}[OK]    = Normal traffic (BENIGN){Color.END}")
     print("-" * 70)
-    print("Press Ctrl+C to stop\n")
+    print(f"{Color.BOLD}Press Ctrl+C to stop{Color.END}\n")
     
     stats = {'total': 0, 'benign': 0, 'attack': 0, 'alerts': 0}
     attack_breakdown = {}
@@ -217,13 +229,13 @@ def simulate_realtime_traffic(csv_path=None, delay=0.5, max_flows=None):
                 stats['benign'] += 1
                 if stats['total'] <= 10 or stats['total'] % 50 == 0:
                     ts = datetime.now().strftime("%H:%M:%S")
-                    print(f"[OK] {ts} - Flow #{stats['total']:5d} - BENIGN")
+                    print(f"{Color.GREEN}[OK]{Color.END} {ts} - Flow #{stats['total']:5d} - BENIGN")
             
             # Progress update every 100 flows
             if stats['total'] % 100 == 0:
-                print(f"\n[STATS] Processed: {stats['total']}/{len(df)} | "
+                print(f"\n{Color.YELLOW}[STATS]{Color.END} Processed: {stats['total']}/{len(df)} | "
                       f"Benign: {stats['benign']} | Attacks: {stats['attack']} | "
-                      f"Alert Rate: {stats['alerts']/stats['total']*100:.1f}%\n")
+                      f"Alert Rate: {Color.BOLD}{stats['alerts']/stats['total']*100:.1f}%{Color.END}\n")
             
             time.sleep(delay)
             
@@ -295,7 +307,10 @@ def batch_mode(csv_path=None, sample_size=500):
     for label_id, count in zip(unique, counts):
         label = LABEL_MAP.get(label_id, f"Class_{label_id}")
         pct = count / len(predictions) * 100
-        symbol = "[ALERT]" if label != 'BENIGN' else "[OK]"
+        if label != 'BENIGN':
+            symbol = f"{Color.RED}[ALERT]{Color.END}"
+        else:
+            symbol = f"{Color.GREEN}[OK]{Color.END}"
         print(f"  {symbol} {label}: {count} ({pct:.1f}%)")
     
     # Show sample alerts
@@ -307,8 +322,8 @@ def batch_mode(csv_path=None, sample_size=500):
     for i, (pred, conf) in enumerate(zip(predictions, confidences)):
         label = LABEL_MAP.get(pred, f"Class_{pred}")
         if label != 'BENIGN' and alerts_issued < 5:
-            print(f"\n[ALERT] Intrusion Detected: {label}")
-            print(f"        Confidence: {conf:.2%}")
+            print(f"\n{Color.RED}{Color.BOLD}[ALERT] Intrusion Detected: {label}{Color.END}")
+            print(f"        Confidence: {Color.YELLOW}{conf:.2%}{Color.END}")
             print(f"        Sample index: {i}")
             alerts_issued += 1
     
