@@ -108,7 +108,7 @@ def plot_correlation_heatmap(df):
     print(f"[OK] Saved: {save_path}")
 
 def plot_feature_distributions(df, top_n=6):
-    """Phân phối các đặc trưng hàng đầu (Benign vs Attack)."""
+    """Phân phối các đặc trưng hàng đầu (Sử dụng Log Scale cho dữ liệu lệch)."""
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
     numeric_cols = [c for c in numeric_cols if c != 'Label' and c in SELECTED_FEATURES]
     
@@ -120,21 +120,60 @@ def plot_feature_distributions(df, top_n=6):
     
     n_cols = 3
     n_rows = (len(top_features) + n_cols - 1) // n_cols
-    fig, axes = plt.subplots(n_rows, n_cols, figsize=(15, 5 * n_rows))
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(18, 5 * n_rows))
     axes = axes.flatten()
+    
+    # Sample data to avoid slow plotting
+    df_sample = df.sample(n=min(len(df), 10000), random_state=42)
     
     for i, feature in enumerate(top_features):
         ax = axes[i]
-        # Giả định Benign là lớp phổ biến nhất hoặc nhãn cụ thể
-        sns.histplot(data=df.sample(n=min(len(df), 5000)), x=feature, hue='Label', 
-                     kde=True, ax=ax, element="step", common_norm=False)
-        ax.set_title(f'Distribution: {feature}', fontsize=11, fontweight='bold')
-        ax.get_legend().remove() if ax.get_legend() else None
+        
+        # Lọc dữ liệu hợp lệ (không NaN/Inf) cho đặc trưng này
+        valid_data = df_sample[[feature, 'Label']].dropna()
+        valid_data = valid_data[np.isfinite(valid_data[feature])]
+        
+        if valid_data.empty:
+            ax.set_title(f'No valid data: {feature}')
+            continue
+
+        # Kiểm tra độ lệch (skewness) để quyết định dùng log scale
+        skewness = valid_data[feature].skew()
+        # Log scale cần giá trị dương. Nếu có <= 0, ta sẽ shift hoặc chỉ lấy phần dương
+        has_zeros_or_neg = (valid_data[feature] <= 0).any()
+        use_log = (abs(skewness) > 2 or valid_data[feature].max() > 10000)
+        
+        try:
+            if use_log:
+                # Nếu có 0 hoặc âm, dùng log(x+1) bằng cách đặt log_scale=(True, False) 
+                # hoặc xử lý data trước. Ở đây dùng log_scale=True của seaborn (yêu cầu > 0)
+                plot_data = valid_data.copy()
+                if has_zeros_or_neg:
+                    # Shift nhẹ để plot được log scale cho cả giá trị 0
+                    min_pos = plot_data[plot_data[feature] > 0][feature].min() if (plot_data[feature] > 0).any() else 1e-5
+                    plot_data[feature] = plot_data[feature].clip(lower=min_pos/10)
+                
+                sns.histplot(data=plot_data, x=feature, hue='Label', 
+                             kde=True, ax=ax, element="step", common_norm=False,
+                             log_scale=True)
+                ax.set_title(f'Distribution: {feature} (Log Scale)', fontsize=11, fontweight='bold')
+            else:
+                # Clip outliers at 99th percentile for linear scale
+                upper_limit = valid_data[feature].quantile(0.99)
+                sns.histplot(data=valid_data[valid_data[feature] <= upper_limit], x=feature, hue='Label', 
+                             kde=True, ax=ax, element="step", common_norm=False)
+                ax.set_title(f'Distribution: {feature}', fontsize=11, fontweight='bold')
+            
+            if ax.get_legend():
+                ax.get_legend().remove()
+        except Exception as e:
+            print(f"[WARN] Could not plot {feature}: {e}")
+            ax.set_title(f'Error plotting {feature}')
     
     for j in range(i + 1, len(axes)):
         axes[j].axis('off')
         
-    plt.suptitle('Phân phối Đặc trưng (Top Features)', fontsize=14, fontweight='bold', y=1.02)
+    plt.suptitle('Phân phối Đặc trưng (Đã xử lý Outliers & Log Scale)', fontsize=14, fontweight='bold', y=1.02)
     plt.tight_layout()
     save_path = os.path.join(REPORTS_DIR, 'eda_plots', 'eda_feature_distributions.png')
     plt.savefig(save_path, dpi=150, bbox_inches='tight')
